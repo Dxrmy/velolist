@@ -1,43 +1,40 @@
 # Velolist
 
-A command-driven, security-hardened whitelist plugin for Velocity proxies with Bedrock (Floodgate) support.
+A simple, fast, and secure whitelist plugin for Velocity proxies with Bedrock (Floodgate) support.
 
-Forked from [PandaDEV's Vitelist](https://github.com/0PandaDEV/Vitelist) to introduce full in-game management commands and patch critical security and performance vulnerabilities.
+Forked from [PandaDEV's Vitelist](https://github.com/0PandaDEV/Vitelist) to add in-game command management and improve reliability.
 
-## Why Velolist?
+## Features
 
-Upstream Vitelist lacked interactive command-line management and suffered from several architectural vulnerabilities under proxy load. Velolist addresses this directly:
-
-- **Full Command Management:** Adds complete command control (`/vlist add`, `/vlist remove`, `/vlist on`, `/vlist off`, `/vlist list`, `/vlist reload`) so admins can manage proxy whitelists live without manual config editing or proxy restarts.
-- **Bedrock / Floodgate Support:** Whitelist Bedrock crossplay players seamlessly using either their Floodgate prefix (`.PlayerName`) or Floodgate UUID.
-- **Fail-Closed Security Patch:** Upstream caught configuration read errors and failed open, allowing unwhitelisted players to bypass the whitelist if disk I/O lagged. Velolist intercepts connections at `LoginEvent` and strictly fails closed.
-- **In-Memory Caching (Zero Netty Thread Lag):** Upstream parsed YAML synchronously on every connection inside Netty worker loops. Velolist stores whitelisted UUIDs in an in-memory concurrent set for $O(1)$ lookups with zero disk I/O on joins.
-- **API Request Timeouts:** Enforces 5-second timeouts and local name caching on external playerdb/Floodgate lookups, preventing proxy worker threads from stalling if upstream APIs hang.
-- **Thread-Safe Persistence:** Uses synchronized file handlers to eliminate race conditions and corrupted YAML files during simultaneous admin commands.
+- **Easy In-Game Commands:** Manage your proxy whitelist on the fly (`/vlist add`, `/vlist remove`, etc.) without touching config files or restarting the proxy.
+- **Bedrock Crossplay Support:** Whitelist Bedrock players directly by username using your Floodgate prefix (e.g., `/vlist add .Username`).
+- **Instant Joins (No Lag):** Keeps the whitelist in memory so player connections are verified instantly with zero lag or stutter.
+- **Safe & Reliable:** Fixed security and crash bugs from earlier versions to ensure unwhitelisted players can't slip through and saved files never get corrupted.
+- **Interactive List:** Paginated list (`/vlist list`) with click-to-copy UUIDs.
 
 ## Commands & Permissions
 
 | Command | Permission | Description |
 |---|---|---|
-| `/vlist on` | `velolist.on` | Enables whitelist enforcement proxy-wide. |
-| `/vlist off` | `velolist.off` | Disables whitelist enforcement. |
-| `/vlist add <player>` | `velolist.add` | Adds a Java or Bedrock (`.Name`) player to the whitelist. |
-| `/vlist remove <player\|uuid>` | `velolist.remove` | Removes a player or UUID from the whitelist. |
-| `/vlist list [page]` | `velolist.list` | Displays paginated list of whitelisted players. |
-| `/vlist reload` | `velolist.reload` | Reloads configuration from disk into memory. |
+| `/vlist on` | `velolist.on` | Turn the whitelist on. |
+| `/vlist off` | `velolist.off` | Turn the whitelist off. |
+| `/vlist add <player>` | `velolist.add` | Add a Java or Bedrock (`.Name`) player. |
+| `/vlist remove <player\|uuid>` | `velolist.remove` | Remove a player from the whitelist. |
+| `/vlist list [page]` | `velolist.list` | View all whitelisted players. |
+| `/vlist reload` | `velolist.reload` | Reload the whitelist from disk. |
 
-> Aliases: `/velolist`, `/vlist`, `/vitelist`. Legacy `vitelist.*` permission nodes are supported for backward compatibility.
+> Aliases: `/velolist`, `/vlist`, `/vitelist`.
 
 ```yaml
 permissions:
   velolist.*:
-    description: Full administrative access to Velolist commands
+    description: Full access to all Velolist commands
     default: op
   velolist.add:
-    description: Allows adding players to the whitelist
+    description: Allows adding players
     default: op
   velolist.remove:
-    description: Allows removing players from the whitelist
+    description: Allows removing players
     default: op
   velolist.on:
     description: Allows enabling the whitelist
@@ -46,23 +43,23 @@ permissions:
     description: Allows disabling the whitelist
     default: op
   velolist.list:
-    description: Allows viewing the whitelisted players list
+    description: Allows viewing the whitelist
     default: op
   velolist.reload:
-    description: Allows reloading whitelist configuration
+    description: Allows reloading the configuration
     default: op
 ```
 
 ## Requirements
 
-- **Proxy:** Velocity 3.3.0+ / 3.4.0+
+- **Proxy:** Velocity 3.3.0+
 - **Java:** Java 21+
-- **Optional:** [Floodgate](https://geysermc.org/download#floodgate) for Bedrock player prefix resolution
+- **Optional:** [Floodgate](https://geysermc.org/download#floodgate) (only needed for Bedrock player names)
 
 ## Installation
 
 1. Download `velolist-2.1.0.jar` from [Releases](https://github.com/Dxrmy/velolist/releases).
-2. Place into your Velocity proxy's `plugins/` directory.
+2. Drop it into your Velocity `plugins/` folder.
 3. Start or restart your proxy.
 
 ## Building from Source
@@ -73,7 +70,7 @@ cd velolist
 mvn clean package
 ```
 
-The shaded jar will be built at `target/velolist-2.1.0.jar`.
+The compiled jar will be located in `target/velolist-2.1.0.jar`.
 
 ## License
 
