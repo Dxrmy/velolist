@@ -1,0 +1,10 @@
+{
+  "id": "velolist",
+  "name": "Velolist",
+  "version": "2.1.0",
+  "description": "High-performance, security-hardened whitelist plugin for Velocity with Bedrock (Floodgate) support",
+  "url": "https://github.com/Dxrmy/velolist",
+  "authors": ["PandaDEV", "Dxrmy"],
+  "dependencies": [],
+  "main": "net.pandadev.vitelist.Main"
+}
