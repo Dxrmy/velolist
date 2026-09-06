@@ -10,7 +10,22 @@
     <packaging>jar</packaging>
 
     <name>velolist</name>
-    <description>High-performance, security-hardened whitelist plugin for Velocity with Bedrock (Floodgate) support</description>
+    <description>A simple, fast, and secure whitelist plugin for Velocity proxies with Bedrock (Floodgate) support</description>
+    <url>https://github.com/Dxrmy/velolist</url>
+
+    <developers>
+        <developer>
+            <id>Dxrmy</id>
+            <name>Dxrmy</name>
+            <url>https://github.com/Dxrmy</url>
+        </developer>
+        <developer>
+            <id>PandaDEV</id>
+            <name>PandaDEV</name>
+            <url>https://pandadev.net</url>
+        </developer>
+    </developers>
+
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

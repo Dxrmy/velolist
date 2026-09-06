@@ -25,10 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Plugin(
         id = "velolist",
         name = "Velolist",
-        version = "2.1",
-        description = "Enhanced whitelist plugin for Velocity with in-memory caching and security hardening",
-        url = "https://pandadev.net",
-        authors = {"PandaDEV", "Forked"}
+        version = "2.1.0",
+        description = "A simple, fast, and secure whitelist plugin for Velocity proxies with Bedrock (Floodgate) support",
+        url = "https://github.com/Dxrmy/velolist",
+        authors = {"PandaDEV", "Dxrmy"}
 )
 public class Main {
 
@@ -65,8 +65,7 @@ public class Main {
             new VlistCommand(this)
         );
 
-        int pluginId = 21540;
-        metricsFactory.make(this, pluginId);
+        // bStats metrics disabled in fork to avoid polluting upstream analytics
     }
 
     public synchronized void loadConfig() {
@@ -90,7 +89,7 @@ public class Main {
                 whitelistedUuids.clear();
                 whitelistEnabled = true;
             }
-            logger.info("Vitelist loaded. Whitelist enabled: {}, entries: {}", whitelistEnabled, whitelistedUuids.size());
+            logger.info("Velolist loaded. Whitelist enabled: {}, entries: {}", whitelistEnabled, whitelistedUuids.size());
         } catch (ConfigurateException e) {
             logger.error("Failed to load/create config file", e);
         }
@@ -110,7 +109,7 @@ public class Main {
                     }
                 }
             }
-            logger.info("Vitelist config reloaded. Whitelist enabled: {}, entries: {}", whitelistEnabled, whitelistedUuids.size());
+            logger.info("Velolist config reloaded. Whitelist enabled: {}, entries: {}", whitelistEnabled, whitelistedUuids.size());
             return true;
         } catch (ConfigurateException e) {
             logger.error("Failed to reload config", e);
