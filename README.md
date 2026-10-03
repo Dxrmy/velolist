@@ -6,11 +6,13 @@ Forked from [PandaDEV's Vitelist](https://github.com/0PandaDEV/Vitelist) to add 
 
 ## Features
 
-- **Easy In-Game Commands:** Manage your proxy whitelist on the fly (`/vlist add`, `/vlist remove`, etc.) without touching config files or restarting the proxy.
-- **Bedrock Crossplay Support:** Whitelist Bedrock players directly by username using your Floodgate prefix (e.g., `/vlist add .Username`).
-- **Instant Joins (No Lag):** Keeps the whitelist in memory so player connections are verified instantly with zero lag or stutter.
-- **Safe & Reliable:** Fixed security and crash bugs from earlier versions to ensure unwhitelisted players can't slip through and saved files never get corrupted.
-- **Interactive List:** Paginated list (`/vlist list`) with click-to-copy UUIDs.
+- In-game command management (`/vlist add`, `/vlist remove`, `/vlist check`, etc.)
+- Bedrock / Floodgate support using `.Name` prefixes to prevent Java username collisions
+- In-memory whitelist cache for instant authentication with zero disk I/O on joins
+- Platform badges (`[Java]` / `[Bedrock]`) in list and check views
+- Bypass permission (`velolist.bypass`) for staff and admins
+- Configurable kick message supporting MiniMessage and legacy color codes
+- Context-aware tab completion for subcommands and player names
 
 ## Commands & Permissions
 
@@ -18,12 +20,14 @@ Forked from [PandaDEV's Vitelist](https://github.com/0PandaDEV/Vitelist) to add 
 |---|---|---|
 | `/vlist on` | `velolist.on` | Turn the whitelist on. |
 | `/vlist off` | `velolist.off` | Turn the whitelist off. |
-| `/vlist add <player>` | `velolist.add` | Add a Java or Bedrock (`.Name`) player. |
+| `/vlist add <player\|uuid>` | `velolist.add` | Add a Java (`Name`) or Bedrock (`.Name`) player. |
 | `/vlist remove <player\|uuid>` | `velolist.remove` | Remove a player from the whitelist. |
-| `/vlist list [page]` | `velolist.list` | View all whitelisted players. |
-| `/vlist reload` | `velolist.reload` | Reload the whitelist from disk. |
+| `/vlist check <player\|uuid>` | `velolist.check` | Check if a player or UUID is on the whitelist. |
+| `/vlist list [page]` | `velolist.list` | View whitelisted players with platform badges. |
+| `/vlist status` | `velolist.user` | View current whitelist status and count. |
+| `/vlist reload` | `velolist.reload` | Reload the whitelist and config from disk. |
 
-> Aliases: `/velolist`, `/vlist`, `/vitelist`.
+> Aliases: `/velolist`, `/vlist`.
 
 ```yaml
 permissions:
@@ -35,6 +39,9 @@ permissions:
     default: op
   velolist.remove:
     description: Allows removing players
+    default: op
+  velolist.check:
+    description: Allows checking whitelist status of a player
     default: op
   velolist.on:
     description: Allows enabling the whitelist
@@ -48,6 +55,19 @@ permissions:
   velolist.reload:
     description: Allows reloading the configuration
     default: op
+  velolist.bypass:
+    description: Allows bypassing the proxy whitelist
+    default: false
+```
+
+## Configuration
+
+`plugins/velolist/config.yml`:
+
+```yaml
+whitelist-enabled: true
+kick-message: "&cYou are not whitelisted on this server."
+whitelisted-uuids: []
 ```
 
 ## Requirements
@@ -58,7 +78,7 @@ permissions:
 
 ## Installation
 
-1. Download `velolist-2.1.0.jar` from [Releases](https://github.com/Dxrmy/velolist/releases).
+1. Download `velolist-2.2.0.jar` from [Releases](https://github.com/Dxrmy/velolist/releases).
 2. Drop it into your Velocity `plugins/` folder.
 3. Start or restart your proxy.
 
@@ -70,7 +90,7 @@ cd velolist
 mvn clean package
 ```
 
-The compiled jar will be located in `target/velolist-2.1.0.jar`.
+The compiled jar will be located in `target/velolist-2.2.0.jar`.
 
 ## License
 

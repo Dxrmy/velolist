@@ -1,4 +1,4 @@
-package net.pandadev.vitelist;
+package me.dxrmy.velolist;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
@@ -11,10 +11,14 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.slf4j.Logger;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,10 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Plugin(
         id = "velolist",
         name = "Velolist",
-        version = "2.1.0",
+        version = "2.2.0",
         description = "A simple, fast, and secure whitelist plugin for Velocity proxies with Bedrock (Floodgate) support",
         url = "https://github.com/Dxrmy/velolist",
-        authors = {"PandaDEV", "Dxrmy"}
+        authors = {"Dxrmy"}
 )
 public class Main {
 
@@ -43,29 +47,33 @@ public class Main {
     private YamlConfigurationLoader loader;
     private boolean whitelistEnabled = true;
     private final Set<String> whitelistedUuids = ConcurrentHashMap.newKeySet();
-
-    private final Metrics.Factory metricsFactory;
+    private Component kickMessage = Component.text("§cYou are not whitelisted on this server.");
 
     @Inject
-    public Main(Metrics.Factory metricsFactory) {
-        this.metricsFactory = metricsFactory;
+    public Main() {
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        try {
+            if (Files.notExists(dataDirectory)) {
+                Files.createDirectories(dataDirectory);
+            }
+        } catch (IOException e) {
+            logger.error("Failed to create data directory", e);
+        }
+
         loader = YamlConfigurationLoader.builder().path(dataDirectory.resolve("config.yml")).build();
         loadConfig();
 
         CommandManager commandManager = server.getCommandManager();
         commandManager.register(
             commandManager.metaBuilder("velolist")
-            .aliases("vlist", "vitelist")
+            .aliases("vlist")
             .plugin(this)
             .build(),
             new VlistCommand(this)
         );
-
-        // bStats metrics disabled in fork to avoid polluting upstream analytics
     }
 
     public synchronized void loadConfig() {
@@ -73,6 +81,8 @@ public class Main {
             var root = loader.load();
             if (!root.node("whitelisted-uuids").virtual()) {
                 whitelistEnabled = root.node("whitelist-enabled").getBoolean(true);
+                String rawKick = root.node("kick-message").getString("&cYou are not whitelisted on this server.");
+                kickMessage = parseMessage(rawKick);
                 List<String> list = root.node("whitelisted-uuids").getList(String.class);
                 whitelistedUuids.clear();
                 if (list != null) {
@@ -85,9 +95,11 @@ public class Main {
             } else {
                 root.node("whitelisted-uuids").set(List.of());
                 root.node("whitelist-enabled").set(true);
+                root.node("kick-message").set("&cYou are not whitelisted on this server.");
                 loader.save(root);
                 whitelistedUuids.clear();
                 whitelistEnabled = true;
+                kickMessage = parseMessage("&cYou are not whitelisted on this server.");
             }
             logger.info("Velolist loaded. Whitelist enabled: {}, entries: {}", whitelistEnabled, whitelistedUuids.size());
         } catch (ConfigurateException e) {
@@ -100,6 +112,8 @@ public class Main {
         try {
             var root = loader.load();
             whitelistEnabled = root.node("whitelist-enabled").getBoolean(true);
+            String rawKick = root.node("kick-message").getString("&cYou are not whitelisted on this server.");
+            kickMessage = parseMessage(rawKick);
             List<String> list = root.node("whitelisted-uuids").getList(String.class);
             whitelistedUuids.clear();
             if (list != null) {
@@ -117,20 +131,32 @@ public class Main {
         }
     }
 
+    private Component parseMessage(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return Component.text("You are not whitelisted on this server.");
+        }
+        if (raw.contains("&") || raw.contains("§")) {
+            return LegacyComponentSerializer.legacyAmpersand().deserialize(raw.replace('§', '&'));
+        }
+        try {
+            return MiniMessage.miniMessage().deserialize(raw);
+        } catch (Exception e) {
+            return Component.text(raw);
+        }
+    }
+
     @Subscribe
     public void onPlayerLogin(LoginEvent event) {
         if (!whitelistEnabled) return;
         Player player = event.getPlayer();
+        if (player.hasPermission("velolist.bypass")) return;
         try {
             String uuid = player.getUniqueId().toString().toLowerCase();
             if (!whitelistedUuids.contains(uuid)) {
-                event.setResult(ResultedEvent.ComponentResult.denied(
-                    Component.text("§cYou are not whitelisted on this server.")
-                ));
+                event.setResult(ResultedEvent.ComponentResult.denied(kickMessage));
             }
         } catch (Exception e) {
             logger.error("Failed to verify whitelist for " + player.getUsername(), e);
-            // Fail closed on error to prevent authentication bypass
             event.setResult(ResultedEvent.ComponentResult.denied(
                 Component.text("§cAn error occurred while verifying your whitelist status. Please reconnect.")
             ));
@@ -214,5 +240,9 @@ public class Main {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public Component getKickMessage() {
+        return kickMessage;
     }
 }
